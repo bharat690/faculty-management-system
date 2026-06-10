@@ -56,18 +56,19 @@ def submit_daily_schedule(
         )
 
         formatted_data.append(
-            (
-                item["faculty_id"],
-                semester_id,
-                item["slot_number"],
-                start_time,
-                end_time,
-                item["task_type"],
-                item["academic_unit_id"],
-                item["subject_id"],
-                item["remarks"]
-            )
-        )
+    (
+        item["faculty_id"],
+        semester_id,
+        item["slot_number"],
+        start_time,
+        end_time,
+        item["task_type"],
+        item["department"],
+        item["academic_year"],
+        item["topic_description"],
+        item["remarks"]
+    )
+)
 
     return save_daily_activity(
         formatted_data

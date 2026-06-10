@@ -5,31 +5,91 @@ from services.attendance_service import (
     submit_attendance
 )
 
+from services.schedule_service import (
+    activity_already_submitted
+)
 
-st.title("Faculty Dashboard")
+from components.schedule_form import (
+    render_schedule_form
+)
 
-user = st.session_state.user
+from utils.session_manager import (
+    initialize_session
+)
+
+
+# ==========================
+# Session Protection
+# ==========================
+
+initialize_session()
+
+if not st.session_state.logged_in:
+    st.switch_page("app.py")
+
+
+# ==========================
+# User Validation
+# ==========================
+
+user = st.session_state.get(
+    "user"
+)
+
+if not user:
+    st.switch_page("app.py")
+
+
+faculty_id = user["id"]
+
+
+# ==========================
+# Page UI
+# ==========================
+
+st.title(
+    "Faculty Dashboard"
+)
 
 st.write(
     f"Welcome {user['name']}"
 )
 
-faculty_id = user["id"]
+
+# ==========================
+# Session Defaults
+# ==========================
+
+if "attendance_done" not in st.session_state:
+
+    st.session_state.attendance_done = (
+        attendance_already_marked(
+            faculty_id
+        )
+    )
+
+if "show_schedule" not in st.session_state:
+
+    st.session_state.show_schedule = False
 
 
-already_marked = (
-    attendance_already_marked(
+attendance_done = (
+    st.session_state
+    .attendance_done
+)
+
+activity_done = (
+    activity_already_submitted(
         faculty_id
     )
 )
 
-if already_marked:
 
-    st.success(
-        "Attendance already submitted today"
-    )
+# ==========================
+# Attendance Section
+# ==========================
 
-else:
+if not attendance_done:
 
     st.subheader(
         "Mark Today's Attendance"
@@ -40,35 +100,94 @@ else:
     with col1:
 
         if st.button(
-            "Present",
+            "✅ Present",
             use_container_width=True
         ):
 
-            success = submit_attendance(
-                faculty_id,
-                "present"
+            success = (
+                submit_attendance(
+                    faculty_id,
+                    "present"
+                )
             )
 
             if success:
-                st.success(
-                    "Marked Present"
-                )
+
+                st.session_state[
+                    "attendance_done"
+                ] = True
+
+                st.session_state[
+                    "show_schedule"
+                ] = True
+
                 st.rerun()
 
     with col2:
 
         if st.button(
-            "Absent",
+            "❌ Absent",
             use_container_width=True
         ):
 
-            success = submit_attendance(
-                faculty_id,
-                "absent"
+            success = (
+                submit_attendance(
+                    faculty_id,
+                    "absent"
+                )
             )
 
             if success:
-                st.success(
-                    "Marked Absent"
-                )
+
+                st.session_state[
+                    "attendance_done"
+                ] = True
+
                 st.rerun()
+
+
+# ==========================
+# Schedule Section
+# ==========================
+
+elif (
+    attendance_done
+    and not activity_done
+):
+
+    st.success(
+        "Attendance marked"
+    )
+
+    if not st.session_state.get(
+        "show_schedule",
+        False
+    ):
+
+        if st.button(
+            "Open Today's Schedule",
+            use_container_width=True
+        ):
+
+            st.session_state[
+                "show_schedule"
+            ] = True
+
+            st.rerun()
+
+    else:
+
+        render_schedule_form(
+            faculty_id
+        )
+
+
+# ==========================
+# Already Submitted
+# ==========================
+
+else:
+
+    st.success(
+        "Today's activity already submitted"
+    )

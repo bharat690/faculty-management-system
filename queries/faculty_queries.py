@@ -1,5 +1,5 @@
 from database.db import get_connection
-
+import streamlit as st
 
 def get_user_by_email(email):
 
@@ -31,3 +31,62 @@ def get_user_by_email(email):
     finally:
         cursor.close()
         conn.close()
+
+@st.cache_data
+def get_departments():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id,
+               department_name
+        FROM departments
+    """)
+
+    data = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return data
+
+@st.cache_data
+def get_subjects():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id,
+               subject_name
+        FROM subjects
+    """)
+
+    data = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return data
+
+@st.cache_data
+def get_academic_units():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            year,
+            section
+        FROM academic_units
+    """)
+
+    data = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return data

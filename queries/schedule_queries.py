@@ -20,16 +20,43 @@ def save_daily_activity(
             start_time,
             end_time,
             task_type,
-            academic_unit_id,
-            subject_id,
+            department,
+            academic_year,
+            topic_description,
             remarks
         )
         VALUES
         (
-            %s, %s, CURRENT_DATE,
+            %s, %s,
+            CURRENT_DATE,
             %s, %s, %s,
-            %s, %s, %s, %s
+            %s, %s, %s,
+            %s, %s
         )
+
+        ON CONFLICT
+        (
+            faculty_id,
+            activity_date,
+            slot_number
+        )
+
+        DO UPDATE SET
+
+        task_type =
+        EXCLUDED.task_type,
+
+        department =
+        EXCLUDED.department,
+
+        academic_year =
+        EXCLUDED.academic_year,
+
+        topic_description =
+        EXCLUDED.topic_description,
+
+        remarks =
+        EXCLUDED.remarks
         """
 
         cursor.executemany(
@@ -42,14 +69,17 @@ def save_daily_activity(
         return True
 
     except Exception as e:
+
         conn.rollback()
+
         print(e)
+
         return False
 
     finally:
+
         cursor.close()
         conn.close()
-
 
 def check_today_activity_exists(
     faculty_id
@@ -71,6 +101,12 @@ def check_today_activity_exists(
 
         return cursor.fetchone()
 
+    except Exception as e:
+
+        print(e)
+        return None
+
     finally:
+
         cursor.close()
         conn.close()

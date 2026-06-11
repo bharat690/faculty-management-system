@@ -4,7 +4,7 @@ from queries.schedule_queries import (
 )
 
 from queries.semester_queries import (
-    get_active_semester
+    get_active_semester_id
 )
 
 
@@ -25,14 +25,12 @@ def submit_daily_schedule(
     activity_data
 ):
 
-    semester = (
-        get_active_semester()
+    semester_id = (
+        get_active_semester_id()
     )
 
-    if not semester:
+    if not semester_id:
         return False
-
-    semester_id = semester[0]
 
     formatted_data = []
 

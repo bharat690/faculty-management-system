@@ -4,9 +4,8 @@ from queries.attendance_queries import (
 )
 
 from queries.semester_queries import (
-    get_active_semester
+    get_active_semester_id
 )
-
 
 def attendance_already_marked(
     faculty_id
@@ -24,12 +23,12 @@ def submit_attendance(
     status
 ):
 
-    semester = get_active_semester()
+    semester_id = (
+        get_active_semester_id()
+    )
 
-    if not semester:
+    if not semester_id:
         return False
-
-    semester_id = semester[0]
 
     return mark_attendance(
         faculty_id,

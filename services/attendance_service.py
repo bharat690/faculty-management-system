@@ -4,7 +4,8 @@ from queries.attendance_queries import (
 )
 
 from queries.semester_queries import (
-    get_active_semester_id
+    get_active_semester_id,
+
 )
 
 def attendance_already_marked(

@@ -1,7 +1,14 @@
 from queries.analytics_queries import (
     get_today_attendance_stats,
-    get_faculty_availability
+    get_faculty_availability,
+    get_today_faculty_status
 )
+
+def fetch_today_faculty_status():
+
+    return (
+        get_today_faculty_status()
+    )
 
 
 def fetch_dashboard_stats():

@@ -29,12 +29,89 @@ from services.schedule_service import (
 
 from services.analytics_service import (
     fetch_dashboard_stats,
-    fetch_faculty_availability
+    fetch_faculty_availability,
+    fetch_today_faculty_status
 )
 
 from utils.helper import (
     get_current_slot
 )
+
+from services.semester_service import (
+    fetch_active_semester
+)
+
+@st.dialog(
+    "Change Password"
+)
+def change_password_dialog():
+
+    from services.faculty_service import (
+        change_password
+    )
+
+    current_password = (
+        st.text_input(
+            "Current Password",
+            type="password"
+        )
+    )
+
+    new_password = (
+        st.text_input(
+            "New Password",
+            type="password"
+        )
+    )
+
+    confirm_password = (
+        st.text_input(
+            "Confirm Password",
+            type="password"
+        )
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(
+            "Cancel",
+            use_container_width=True
+        ):
+
+            st.rerun()
+
+    with col2:
+
+        if st.button(
+            "Update Password",
+            use_container_width=True
+        ):
+
+            success, message = (
+                change_password(
+                    st.session_state
+                    .user["id"],
+
+                    current_password,
+                    new_password,
+                    confirm_password
+                )
+            )
+
+            if success:
+
+                st.success(
+                    message
+                )
+
+            else:
+
+                st.error(
+                    message
+                )
+
 
 # ==========================
 # CONFIG
@@ -126,7 +203,12 @@ else:
 
     with col2:
 
-        st.write("")
+        if st.button(
+            "Change Password",
+            use_container_width=True
+        ):
+
+            change_password_dialog()
 
         if st.button(
             "Logout",
@@ -134,7 +216,9 @@ else:
         ):
 
             logout()
+
             st.rerun()
+
 
     st.markdown("---")
 
@@ -272,7 +356,7 @@ else:
 
             "Dashboard",
             "Faculty Availability",
-            "Reports",
+            "Faculty Analytics",
             "Settings"
         ])
 
@@ -289,6 +373,75 @@ else:
             stats = (
                 fetch_dashboard_stats()
             )
+
+            faculty_status = (
+                fetch_today_faculty_status()
+            )
+
+            active_semester = (
+                fetch_active_semester()
+            )
+
+            # ==========================
+            # FACULTY STATUS LISTS
+            # ==========================
+
+            present_faculty = []
+            absent_faculty = []
+            unmarked_faculty = []
+
+            for name, status in (
+                faculty_status
+            ):
+
+                if (
+                    status
+                    == "present"
+                ):
+
+                    present_faculty.append(
+                        name
+                    )
+
+                elif (
+                    status
+                    == "absent"
+                ):
+
+                    absent_faculty.append(
+                        name
+                    )
+
+                else:
+
+                    unmarked_faculty.append(
+                        name
+                    )
+
+            # ==========================
+            # ATTENDANCE %
+            # ==========================
+
+            total_faculty = (
+                stats["present"]
+                + stats["absent"]
+                + stats["unmarked"]
+            )
+
+            attendance_percentage = 0
+
+            if total_faculty > 0:
+
+                attendance_percentage = round(
+                    (
+                        stats["present"]
+                        / total_faculty
+                    ) * 100
+                )
+
+            # ==========================
+            # TOP METRICS
+            # ==========================
 
             col1, col2, col3 = (
                 st.columns(3)
@@ -317,6 +470,10 @@ else:
 
             st.markdown("---")
 
+            # ==========================
+            # QUICK INSIGHTS
+            # ==========================
+
             st.subheader(
                 "Quick Insights"
             )
@@ -325,24 +482,117 @@ else:
                 st.columns(2)
             )
 
+            # --------------------------
+            # Attendance Health
+            # --------------------------
+
             with insight_col1:
 
-                st.info(
-                    "Faculty who have not marked attendance "
-                    "can be monitored here later."
-                )
+                with st.container(
+                    border=True
+                ):
+
+                    st.markdown(
+                        "### Attendance Health"
+                    )
+
+                    st.write(
+                        f"Attendance Rate: "
+                        f"{attendance_percentage}%"
+                    )
+
+                    st.progress(
+                        attendance_percentage
+                    )
+
+                    st.write("")
+
+                    st.selectbox(
+                        "Present Faculty",
+                        present_faculty
+                        if present_faculty
+                        else [
+                            "No Faculty"
+                        ]
+                    )
+
+                    st.selectbox(
+                        "Absent Faculty",
+                        absent_faculty
+                        if absent_faculty
+                        else [
+                            "No Faculty"
+                        ]
+                    )
+
+                    st.selectbox(
+                        "Unmarked Faculty",
+                        unmarked_faculty
+                        if unmarked_faculty
+                        else [
+                            "No Faculty"
+                        ]
+                    )
+
+            # --------------------------
+            # Semester + Alerts
+            # --------------------------
 
             with insight_col2:
 
-                st.info(
-                    "Weekly teaching analytics "
-                    "coming soon."
-                )
+                with st.container(
+                    border=True
+                ):
+
+                    st.markdown(
+                        "### Current Semester"
+                    )
+
+                    st.info(
+                        active_semester
+                    )
+
+                    st.markdown("---")
+
+                    st.markdown(
+                        "### Action Needed"
+                    )
+
+                    if (
+                        stats["unmarked"]
+                        > 0
+                    ):
+
+                        st.warning(
+                            f"{stats['unmarked']} faculty "
+                            f"still need to mark attendance."
+                        )
+
+                    else:
+
+                        st.success(
+                            "All faculty marked attendance."
+                        )
+
+                    if (
+                        stats["absent"]
+                        > 0
+                    ):
+
+                        st.error(
+                            f"{stats['absent']} faculty "
+                            f"are absent today."
+                        )
+
+                    else:
+
+                        st.success(
+                            "No faculty absent today."
+                        )
 
         # ==================================
         # AVAILABILITY TAB
         # ==================================
-
         with availability_tab:
 
             st.subheader(
@@ -366,29 +616,34 @@ else:
                 in slot_options.items()
             }
 
-            view_mode = st.radio(
-                "View Mode",
-                [
+            # ==========================
+            # SLOT VIEW TABS
+            # ==========================
+
+            current_tab, manual_tab = (
+                st.tabs([
                     "Current Slot",
                     "Manual Selection"
-                ],
-                horizontal=True
+                ])
             )
 
-            if (
-                view_mode
-                == "Current Slot"
-            ):
+            slot_number = None
 
-                slot_number = (
+            with current_tab:
+
+                current_slot = (
                     get_current_slot()
                 )
 
-                if slot_number:
+                if current_slot:
+
+                    slot_number = (
+                        current_slot
+                    )
 
                     st.success(
-                        f"Current Slot: "
-                        f"{reverse_slot_map[slot_number]}"
+                        f"Current Time Slot: "
+                        f"{reverse_slot_map[current_slot]}"
                     )
 
                 else:
@@ -397,9 +652,7 @@ else:
                         "Outside College Hours"
                     )
 
-                    st.stop()
-
-            else:
+            with manual_tab:
 
                 selected_slot = (
                     st.selectbox(
@@ -415,6 +668,43 @@ else:
                         selected_slot
                     ]
                 )
+
+            st.markdown("---")
+
+            # ==========================
+            # FILTERS
+            # ==========================
+
+            filter_col1, filter_col2 = (
+                st.columns([3, 2])
+            )
+
+            with filter_col1:
+
+                selected_department = (
+                    st.selectbox(
+                        "Department",
+                        [
+                            "All",
+                            "CSE",
+                            "AI&ML",
+                            "Cyber Security",
+                            "BCA"
+                        ]
+                    )
+                )
+
+            with filter_col2:
+
+                only_free = (
+                    st.toggle(
+                        "Show Only Free Faculty"
+                    )
+                )
+
+            # ==========================
+            # FETCH DATA
+            # ==========================
 
             faculty_data = (
                 fetch_faculty_availability(
@@ -435,17 +725,40 @@ else:
                     topic
                 ) = row
 
+                # Department Filter
+                if (
+                    selected_department
+                    != "All"
+                    and department
+                    != selected_department
+                ):
+
+                    continue
+
+                # Free Faculty Filter
+                if (
+                    only_free
+                    and task_type
+                    == "Teaching"
+                ):
+
+                    continue
+
                 if (
                     task_type
                     == "Teaching"
                 ):
 
                     teaching.append({
-                        "name": name,
+                        "name":
+                        name,
+
                         "department":
                         department,
+
                         "year":
                         academic_year,
+
                         "topic":
                         topic
                     })
@@ -453,66 +766,88 @@ else:
                 else:
 
                     available.append({
-                        "name": name,
+                        "name":
+                        name,
+
                         "task":
                         task_type
                     })
 
+            # ==========================
+            # FACULTY COLUMNS
+            # ==========================
+
             col1, col2 = st.columns(2)
+
+            # --------------------------
+            # Teaching Faculty
+            # --------------------------
 
             with col1:
 
                 st.subheader(
-                    "Teaching Faculty"
+                    " Teaching Faculty"
                 )
 
                 if teaching:
 
                     for teacher in teaching:
 
-                        st.info(
-                            f"""
-**{teacher['name']}**
+                        with st.container(
+                            border=True
+                        ):
 
-Department:
-{teacher['department']}
+                            st.markdown(
+                                f"""
+                    ### {teacher['name']}
 
-Year:
-{teacher['year']}
+                    **Department:**  
+                    {teacher['department']}
 
-Topic:
-{teacher['topic']}
-"""
-                        )
+                    **Year:**  
+                    {teacher['year']}
+
+                    **Teaching:**  
+                    {teacher['topic']}
+                    """
+                                        )
 
                 else:
 
-                    st.write(
+                    st.info(
                         "No faculty teaching"
                     )
+
+            # --------------------------
+            # Available Faculty
+            # --------------------------
 
             with col2:
 
                 st.subheader(
-                    "Available Faculty"
+                    " Available Faculty"
                 )
 
                 if available:
 
                     for faculty in available:
 
-                        st.success(
-                            f"""
-{faculty['name']}
+                        with st.container(
+                            border=True
+                        ):
 
-Task:
-{faculty['task']}
-"""
-                        )
+                            st.markdown(
+                                f"""
+                            ### {faculty['name']}
+
+                            **Current Status:**  
+                            {faculty['task']}
+                            """
+                            )
 
                 else:
 
-                    st.write(
+                    st.info(
                         "No faculty available"
                     )
 
@@ -523,38 +858,448 @@ Task:
         with reports_tab:
 
             st.subheader(
-                "Reports"
+                "Faculty Analytics"
             )
 
-            col1, col2 = st.columns(2)
-
-            with col1:
-
-                st.button(
-                    "Weekly Teaching Hours",
-                    use_container_width=True
-                )
-
-                st.button(
-                    "Attendance Summary",
-                    use_container_width=True
-                )
-
-            with col2:
-
-                st.button(
-                    "Most Active Faculty",
-                    use_container_width=True
-                )
-
-                st.button(
-                    "Faculty Missing Attendance",
-                    use_container_width=True
-                )
-
-            st.info(
-                "Reports backend will be connected next."
+            from services.report_service import (
+                fetch_faculty_list,
+                fetch_week_summary,
+                fetch_month_summary,
+                fetch_semester_summary
             )
+
+            faculty_list = (
+                fetch_faculty_list()
+            )
+
+            if not faculty_list:
+
+                st.warning(
+                    "No faculty found"
+                )
+
+            else:
+
+                faculty_map = {
+
+                    f"{name} "
+                    f"({employee_id})":
+
+                    {
+                        "id":
+                        faculty_id,
+
+                        "department":
+                        department,
+
+                        "employee_id":
+                        employee_id
+                    }
+
+                    for (
+                        faculty_id,
+                        employee_id,
+                        name,
+                        department
+                    )
+
+                    in faculty_list
+                }
+
+                selected_faculty = (
+                    st.selectbox(
+                        "Search Faculty",
+                        faculty_map.keys()
+                    )
+                )
+
+                selected_data = (
+                    faculty_map[
+                        selected_faculty
+                    ]
+                )
+
+                faculty_id = (
+                    selected_data[
+                        "id"
+                    ]
+                )
+
+                # ==================
+                # FACULTY HEADER
+                # ==================
+
+                st.markdown("---")
+
+                col1, col2, col3 = (
+                    st.columns(3)
+                )
+
+                with col1:
+
+                    st.write(
+                        "Name"
+                    )
+
+                    st.info(
+                        selected_faculty
+                        .split("(")[0]
+                    )
+
+                with col2:
+
+                    st.write(
+                        "Employee ID"
+                    )
+
+                    st.info(
+                        selected_data[
+                            "employee_id"
+                        ]
+                    )
+
+                with col3:
+
+                    st.write(
+                        "Department"
+                    )
+
+                    st.info(
+                        selected_data[
+                            "department"
+                        ]
+                    )
+
+                st.markdown("---")
+
+                # ==================
+                # SUMMARIES
+                # ==================
+
+                week_summary = (
+                    fetch_week_summary(
+                        faculty_id
+                    )
+                )
+
+                month_summary = (
+                    fetch_month_summary(
+                        faculty_id
+                    )
+                )
+
+                semester_summary = (
+                    fetch_semester_summary(
+                        faculty_id
+                    )
+                )
+
+                st.subheader(
+                    "Performance Summary"
+                )
+
+                week_col, month_col, sem_col = (
+                    st.columns(3)
+                )
+
+                # ------------------
+                # Week
+                # ------------------
+
+                with week_col:
+
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.markdown(
+                            "### This Week"
+                        )
+
+                        st.metric(
+                            "Present Days",
+                            week_summary[
+                                "present_days"
+                            ]
+                        )
+
+                        st.metric(
+                            "Teaching Hours",
+                            week_summary[
+                                "teaching_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Work Hours",
+                            week_summary[
+                                "work_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Free Hours",
+                            week_summary[
+                                "free_hours"
+                            ]
+                        )
+
+                # ------------------
+                # Month
+                # ------------------
+
+                with month_col:
+
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.markdown(
+                            "### Last 30 Days"
+                        )
+
+                        st.metric(
+                            "Present Days",
+                            month_summary[
+                                "present_days"
+                            ]
+                        )
+
+                        st.metric(
+                            "Teaching Hours",
+                            month_summary[
+                                "teaching_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Work Hours",
+                            month_summary[
+                                "work_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Free Hours",
+                            month_summary[
+                                "free_hours"
+                            ]
+                        )
+
+                # ------------------
+                # Semester
+                # ------------------
+
+                with sem_col:
+
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.markdown(
+                            "### Semester"
+                        )
+
+                        st.metric(
+                            "Present Days",
+                            semester_summary[
+                                "present_days"
+                            ]
+                        )
+
+                        st.metric(
+                            "Teaching Hours",
+                            semester_summary[
+                                "teaching_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Work Hours",
+                            semester_summary[
+                                "work_hours"
+                            ]
+                        )
+
+                        st.metric(
+                            "Free Hours",
+                            semester_summary[
+                                "free_hours"
+                            ]
+                        )
+            from services.report_service import (
+                    fetch_weekly_classes,
+                    fetch_topics_by_class
+            )
+            st.markdown("---")
+
+            # ==========================
+            # WEEKLY CLASSES
+            # ==========================
+
+            st.subheader(
+                "Classes Taught This Week"
+            )
+
+            weekly_classes = (
+                fetch_weekly_classes(
+                    faculty_id
+                )
+            )
+
+            slot_map = {
+
+                1: "9:00–10:00",
+                2: "10:00–11:00",
+                3: "11:00–12:00",
+                4: "12:00–1:00",
+                5: "1:00–2:00",
+                6: "2:00–3:00",
+                7: "3:00–4:00",
+                8: "4:00–5:00"
+            }
+
+            grouped_classes = {}
+
+            for row in weekly_classes:
+
+                (
+                    activity_date,
+                    slot_number,
+                    department,
+                    academic_year,
+                    topic
+                ) = row
+
+                day_name = (
+                    activity_date.strftime(
+                        "%A"
+                    )
+                )
+
+                if (
+                    day_name
+                    not in
+                    grouped_classes
+                ):
+
+                    grouped_classes[
+                        day_name
+                    ] = []
+
+                grouped_classes[
+                    day_name
+                ].append(
+                    f"{slot_map[slot_number]}"
+                    f" → "
+                    f"{topic or 'No Topic'} "
+                    f"({department} "
+                    f"{academic_year})"
+                )
+
+            if grouped_classes:
+
+                for day, classes in (
+                    grouped_classes.items()
+                ):
+
+                    with st.expander(
+                        day
+                    ):
+
+                        for cls in classes:
+
+                            st.write(
+                                cls
+                            )
+
+            else:
+
+                st.info(
+                    "No teaching activity recorded this week."
+                )
+
+
+            st.markdown("---")
+
+            # ==========================
+            # TOPICS BY CLASS
+            # ==========================
+
+            st.subheader(
+                "Topics Taught by Class"
+            )
+
+            topics = (
+                fetch_topics_by_class(
+                    faculty_id
+                )
+            )
+
+            class_topics = {}
+
+            for row in topics:
+
+                (
+                    department,
+                    academic_year,
+                    topic
+                ) = row
+
+                key = (
+                    f"{department} "
+                    f"- "
+                    f"{academic_year}"
+                )
+
+                if (
+                    key
+                    not in
+                    class_topics
+                ):
+
+                    class_topics[
+                        key
+                    ] = []
+
+                if (
+                    topic
+                    and topic
+                    not in
+                    class_topics[key]
+                ):
+
+                    class_topics[
+                        key
+                    ].append(
+                        topic
+                    )
+
+            if class_topics:
+
+                for cls, topic_list in (
+                    class_topics.items()
+                ):
+
+                    with st.expander(
+                        cls
+                    ):
+
+                        for topic in (
+                            topic_list
+                        ):
+
+                            st.write(
+                                f"• {topic}"
+                            )
+
+            else:
+
+                st.info(
+                    "No topics available"
+                )
+
+
 
         # ==================================
         # SETTINGS TAB

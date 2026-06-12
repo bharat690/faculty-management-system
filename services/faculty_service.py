@@ -11,8 +11,84 @@ from queries.faculty_queries import (
     get_all_faculty,
     update_faculty,
     delete_faculty,
-    reset_faculty_password
+    reset_faculty_password,
+    get_user_password_hash,
+    update_user_password
 )
+
+def change_password(
+    user_id,
+    current_password,
+    new_password,
+    confirm_password
+):
+
+    if (
+        new_password
+        != confirm_password
+    ):
+
+        return (
+            False,
+            "Passwords do not match"
+        )
+
+    if len(
+        new_password
+    ) < 8:
+
+        return (
+            False,
+            "Password must be at least 8 characters"
+        )
+
+    stored_hash = (
+        get_user_password_hash(
+            user_id
+        )
+    )
+
+    if not (
+        bcrypt.checkpw(
+            current_password.encode(),
+            stored_hash.encode()
+        )
+    ):
+
+        return (
+            False,
+            "Current password incorrect"
+        )
+
+    hashed_password = (
+        bcrypt.hashpw(
+            new_password.encode(),
+            bcrypt.gensalt()
+        ).decode()
+    )
+
+    success = (
+        update_user_password(
+            user_id,
+            hashed_password
+        )
+    )
+
+    if success:
+
+        return (
+            True,
+            "Password updated successfully"
+        )
+
+    return (
+        False,
+        "Password update failed"
+    )
+
+
+
+
 def update_faculty_details(
     faculty_id,
     full_name,

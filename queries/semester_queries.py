@@ -130,8 +130,6 @@ def get_active_semester_id():
         cursor.close()
         conn.close()
 
-
-
 def start_new_semester(
     semester_name
 ):
@@ -198,6 +196,34 @@ def start_new_semester(
         print(e)
 
         return False
+
+    finally:
+
+        cursor.close()
+        conn.close()
+
+
+def get_active_semester_details():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                id,
+                semester_name,
+                start_date,
+                end_date
+            FROM semesters
+            WHERE is_active = TRUE
+            LIMIT 1
+        """)
+
+        return (
+            cursor.fetchone()
+        )
 
     finally:
 

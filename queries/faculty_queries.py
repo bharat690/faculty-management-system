@@ -340,3 +340,73 @@ def reset_faculty_password(
 
         cursor.close()
         conn.close()
+        
+def get_user_password_hash(
+    user_id
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT password_hash
+            FROM users
+            WHERE id = %s
+        """, (
+            user_id,
+        ))
+
+        result = (
+            cursor.fetchone()
+        )
+
+        return (
+            result[0]
+            if result
+            else None
+        )
+
+    finally:
+
+        cursor.close()
+        conn.close()
+
+
+def update_user_password(
+    user_id,
+    hashed_password
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            UPDATE users
+            SET password_hash = %s
+            WHERE id = %s
+        """, (
+            hashed_password,
+            user_id
+        ))
+
+        conn.commit()
+
+        return True
+
+    except Exception as e:
+
+        conn.rollback()
+
+        print(e)
+
+        return False
+
+    finally:
+
+        cursor.close()
+        conn.close()
+

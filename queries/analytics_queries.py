@@ -3,6 +3,48 @@ from database.db import (
 )
 
 
+
+def get_today_faculty_status():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                u.full_name,
+                COALESCE(
+                    a.status,
+                    'unmarked'
+                ) as status
+            FROM users u
+
+            LEFT JOIN attendance a
+            ON (
+                u.id =
+                a.faculty_id
+                AND
+                a.attendance_date =
+                CURRENT_DATE
+            )
+
+            WHERE u.role =
+            'faculty'
+
+            ORDER BY
+            u.full_name
+        """)
+
+        return (
+            cursor.fetchall()
+        )
+
+    finally:
+
+        cursor.close()
+        conn.close()
+
 def get_today_attendance_stats():
 
     conn = get_connection()

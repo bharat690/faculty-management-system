@@ -1,10 +1,17 @@
 from datetime import datetime
+from zoneinfo import (
+    ZoneInfo
+)
 
 
 def get_current_slot():
 
     current_hour = (
-        datetime.now().hour
+        datetime.now(
+            ZoneInfo(
+                "Asia/Kolkata"
+            )
+        ).hour
     )
 
     slot_map = {
@@ -22,6 +29,7 @@ def get_current_slot():
         current_hour,
         None
     )
+
 def normalize_department(
     department
 ):

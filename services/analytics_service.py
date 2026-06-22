@@ -64,31 +64,73 @@ def get_analytics_attendance_dept_bar(period):
     return fig
 
 
-def _get_workload_data(department):
-    sem = get_active_semester_details()
-    if not sem:
-        return []
-    start_date, end_date = sem[2], sem[3]
+def _get_workload_data(department, period):
+    # Reusing the same date logic as the Attendance tab
+    start_date, end_date = _get_date_range(period)
     return get_analytics_faculty_tasks(start_date, end_date, department)
 
 
-def get_analytics_workload_teaching_bar(department):
-    data = _get_workload_data(department)
+def get_analytics_workload_teaching_bar(department, period="Semester", limit=None):
+    data = _get_workload_data(department, period)
     teaching_data = [row for row in data if row[1] == "Teaching"]
     
     if not teaching_data:
         return None
         
     df = pd.DataFrame(teaching_data, columns=["Faculty", "Task", "Hours"]).drop(columns=["Task"])
+    
+    # Sort descending to grab the top N
+    df = df.sort_values(by="Hours", ascending=False)
+    if limit:
+        df = df.head(limit)
+        
+    # Sort ascending so the highest bar is at the TOP of the horizontal chart
     df = df.sort_values(by="Hours", ascending=True)
     
+    # Dynamically set height: fixed if limited, tall & scrollable if "All"
+    chart_height = 450 if limit else max(600, len(df) * 28)
+    
     fig = px.bar(df, x="Hours", y="Faculty", orientation="h")
-    fig.update_layout(margin=dict(t=20, b=20, l=20, r=20), xaxis_title="Teaching Hours", yaxis_title="")
+    fig.update_layout(
+        margin=dict(t=20, b=20, l=20, r=20), 
+        xaxis_title="Teaching Hours", 
+        yaxis_title="",
+        height=chart_height
+    )
     return fig
 
 
-def get_analytics_workload_distribution_pie(department):
-    data = _get_workload_data(department)
+def get_analytics_workload_free_bar(department, period="Semester", limit=None):
+    data = _get_workload_data(department, period)
+    free_data = [row for row in data if row[1] == "Free"]
+    
+    if not free_data:
+        return None
+        
+    df = pd.DataFrame(free_data, columns=["Faculty", "Task", "Hours"]).drop(columns=["Task"])
+    
+    # Sort descending to grab the top N
+    df = df.sort_values(by="Hours", ascending=False)
+    if limit:
+        df = df.head(limit)
+        
+    # Sort ascending so the highest bar is at the TOP of the horizontal chart
+    df = df.sort_values(by="Hours", ascending=True)
+    
+    # Dynamically set height: fixed if limited, tall & scrollable if "All"
+    chart_height = 450 if limit else max(600, len(df) * 28)
+    
+    fig = px.bar(df, x="Hours", y="Faculty", orientation="h")
+    fig.update_layout(
+        margin=dict(t=20, b=20, l=20, r=20), 
+        xaxis_title="Free Hours", 
+        yaxis_title="",
+        height=chart_height
+    )
+    return fig
+
+def get_analytics_workload_distribution_pie(department, period="Semester"):
+    data = _get_workload_data(department, period)
     
     if not data:
         return None
@@ -101,19 +143,7 @@ def get_analytics_workload_distribution_pie(department):
     return fig
 
 
-def get_analytics_workload_free_bar(department):
-    data = _get_workload_data(department)
-    free_data = [row for row in data if row[1] == "Free"]
-    
-    if not free_data:
-        return None
-        
-    df = pd.DataFrame(free_data, columns=["Faculty", "Task", "Hours"]).drop(columns=["Task"])
-    df = df.sort_values(by="Hours", ascending=True)
-    
-    fig = px.bar(df, x="Hours", y="Faculty", orientation="h")
-    fig.update_layout(margin=dict(t=20, b=20, l=20, r=20), xaxis_title="Free Hours", yaxis_title="")
-    return fig
+
 
 def fetch_today_faculty_status():
 

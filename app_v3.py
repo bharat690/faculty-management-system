@@ -113,7 +113,135 @@ def change_password_dialog():
                     message
                 )
 
+@st.fragment
+def render_analytics_section():
 
+    st.divider()
+    
+    st.subheader("Analytics")
+    
+    from services.analytics_service import (
+        get_analytics_attendance_pie,
+        get_analytics_attendance_dept_bar,
+        get_analytics_workload_teaching_bar,
+        get_analytics_workload_distribution_pie,
+        get_analytics_workload_free_bar
+    )
+    
+    att_tab, workload_tab = st.tabs([
+        "Attendance",
+        "Faculty Workload"
+    ])
+    
+    with att_tab:
+        
+        time_period = st.selectbox(
+            "Time Period",
+            ["Today", "This Week", "This Month", "Semester"],
+            key="analytics_time_period"
+        )
+        
+        chart_col1, chart_col2 = st.columns(2)
+        
+        with chart_col1:
+            with st.container(border=True):
+                st.markdown("### Attendance Distribution")
+                
+                # Loader only wraps the DB call
+                with st.spinner("Loading distribution..."):
+                    fig_pie = get_analytics_attendance_pie(time_period)
+                    
+                if fig_pie:
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                else:
+                    st.info("No data available for this period.")
+                    
+        with chart_col2:
+            with st.container(border=True):
+                st.markdown("### Attendance by Department")
+                
+                with st.spinner("Loading department data..."):
+                    fig_bar = get_analytics_attendance_dept_bar(time_period)
+                    
+                if fig_bar:
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                else:
+                    st.info("No data available for this period.")
+
+        with workload_tab:
+        
+            # --- 3-Column Filters ---
+            filter_col1, filter_col2, filter_col3 = st.columns(3)
+            
+            with filter_col1:
+                dept_filter = st.selectbox(
+                    "Department",
+                    ["All", "CSE", "AI&ML", "BCA", "Cyber Security"],
+                    key="analytics_dept_filter"
+                )
+                
+            with filter_col2:
+                workload_time_period = st.selectbox(
+                    "Time Period",
+                    ["Today", "This Week", "This Month", "Semester"],
+                    key="analytics_workload_time_period"
+                )
+                
+            with filter_col3:
+                display_limit_option = st.selectbox(
+                    "Display Limit",
+                    ["Top 10", "Top 25", "Top 50", "All (Scroll)"],
+                    index=1, # Defaults to Top 25
+                    key="analytics_display_limit"
+                )
+            
+            # Map string to integer or None
+            limit_map = {"Top 10": 10, "Top 25": 25, "Top 50": 50, "All (Scroll)": None}
+            chart_limit = limit_map[display_limit_option]
+            
+            workload_dept = None if dept_filter == "All" else dept_filter
+            
+            with st.container(border=True):
+                st.markdown("### Teaching Hours by Faculty")
+                
+                with st.spinner("Calculating teaching hours..."):
+                    # --- Pass chart_limit ---
+                    fig_teaching = get_analytics_workload_teaching_bar(workload_dept, workload_time_period, chart_limit)
+                    
+                if fig_teaching:
+                    st.plotly_chart(fig_teaching, use_container_width=True)
+                else:
+                    st.info("No data available.")
+                    
+            chart_col1, chart_col2 = st.columns(2)
+            
+            with chart_col1:
+                with st.container(border=True):
+                    st.markdown("### Faculty Time Distribution")
+                    
+                    with st.spinner("Calculating workload distribution..."):
+                        # Pie chart doesn't need a limit (only 7 task types exist)
+                        fig_dist = get_analytics_workload_distribution_pie(workload_dept, workload_time_period)
+                        
+                    if fig_dist:
+                        st.plotly_chart(fig_dist, use_container_width=True)
+                    else:
+                        st.info("No data available.")
+                        
+            with chart_col2:
+                with st.container(border=True):
+                    st.markdown("### Free Hours by Faculty")
+                    
+                    with st.spinner("Calculating free hours..."):
+                        # --- Pass chart_limit ---
+                        fig_free = get_analytics_workload_free_bar(workload_dept, workload_time_period, chart_limit)
+                        
+                    if fig_free:
+                        st.plotly_chart(fig_free, use_container_width=True)
+                    else:
+                        st.info("No data available.")
+                        
+                    
 # ==========================
 # CONFIG
 # ==========================
@@ -696,91 +824,7 @@ else:
             # ANALYTICS
             # ==========================
             
-            st.divider()
-            
-            st.subheader("Analytics")
-            
-            from services.analytics_service import (
-                get_analytics_attendance_pie,
-                get_analytics_attendance_dept_bar,
-                get_analytics_workload_teaching_bar,
-                get_analytics_workload_distribution_pie,
-                get_analytics_workload_free_bar
-            )
-            
-            att_tab, workload_tab = st.tabs([
-                "Attendance",
-                "Faculty Workload"
-            ])
-            
-            with att_tab:
-                
-                time_period = st.selectbox(
-                    "Time Period",
-                    ["Today", "This Week", "This Month", "Semester"],
-                    key="analytics_time_period"
-                )
-                
-                chart_col1, chart_col2 = st.columns(2)
-                
-                with chart_col1:
-                    with st.container(border=True):
-                        st.markdown("### Attendance Distribution")
-                        fig_pie = get_analytics_attendance_pie(time_period)
-                        if fig_pie:
-                            st.plotly_chart(fig_pie, use_container_width=True)
-                        else:
-                            st.info("No data available for this period.")
-                            
-                with chart_col2:
-                    with st.container(border=True):
-                        st.markdown("### Attendance by Department")
-                        fig_bar = get_analytics_attendance_dept_bar(time_period)
-                        if fig_bar:
-                            st.plotly_chart(fig_bar, use_container_width=True)
-                        else:
-                            st.info("No data available for this period.")
-
-            with workload_tab:
-                
-                dept_filter = st.selectbox(
-                    "Department",
-                    ["All", "CSE", "AI&ML", "BCA", "Cyber Security"],
-                    key="analytics_dept_filter"
-                )
-                
-                workload_dept = None if dept_filter == "All" else dept_filter
-                
-                with st.container(border=True):
-                    st.markdown("### Teaching Hours by Faculty")
-                    fig_teaching = get_analytics_workload_teaching_bar(workload_dept)
-                    if fig_teaching:
-                        st.plotly_chart(fig_teaching, use_container_width=True)
-                    else:
-                        st.info("No data available.")
-                        
-                chart_col1, chart_col2 = st.columns(2)
-                
-                with chart_col1:
-                    with st.container(border=True):
-                        st.markdown("### Faculty Time Distribution")
-                        fig_dist = get_analytics_workload_distribution_pie(workload_dept)
-                        if fig_dist:
-                            st.plotly_chart(fig_dist, use_container_width=True)
-                        else:
-                            st.info("No data available.")
-                            
-                with chart_col2:
-                    with st.container(border=True):
-                        st.markdown("### Free Hours by Faculty")
-                        fig_free = get_analytics_workload_free_bar(workload_dept)
-                        if fig_free:
-                            st.plotly_chart(fig_free, use_container_width=True)
-                        else:
-                            st.info("No data available.")
-
-       
-
+            render_analytics_section()
         # ==================================
         # AVAILABILITY TAB
         # ==================================

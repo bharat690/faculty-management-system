@@ -1,8 +1,9 @@
 from queries.schedule_queries import (
     save_daily_activity,
-    check_today_activity_exists
-)
+    check_today_activity_exists,
+    get_previous_week_day_schedule,
 
+)
 from queries.semester_queries import (
     get_active_semester_id
 )
@@ -71,3 +72,31 @@ def submit_daily_schedule(
     return save_daily_activity(
         formatted_data
     )
+
+
+def fetch_previous_week_template(faculty_id):
+
+    rows = get_previous_week_day_schedule(faculty_id)
+
+    template = {}
+
+    for row in rows:
+
+        (
+            slot_number,
+            task_type,
+            department,
+            academic_year,
+            topic,
+            remarks
+        ) = row
+
+        template[slot_number] = {
+            "task_type": task_type,
+            "department": department,
+            "academic_year": academic_year,
+            "topic_description": topic,
+            "remarks": remarks
+        }
+
+    return template

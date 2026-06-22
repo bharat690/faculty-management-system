@@ -110,3 +110,32 @@ def check_today_activity_exists(
 
         cursor.close()
         conn.close()
+        
+def get_previous_week_day_schedule(faculty_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                slot_number,
+                task_type,
+                department,
+                academic_year,
+                topic_description,
+                remarks
+            FROM daily_activity_logs
+            WHERE faculty_id = %s
+            AND activity_date =
+                CURRENT_DATE - INTERVAL '7 days'
+            ORDER BY slot_number
+        """, (faculty_id,))
+
+        return cursor.fetchall()
+
+    finally:
+
+        cursor.close()
+        conn.close()

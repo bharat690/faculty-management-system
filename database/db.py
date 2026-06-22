@@ -10,13 +10,11 @@ def get_database_url():
 
     # Streamlit Cloud
     if "DATABASE_URL" in st.secrets:
-        print("using secrets env")
         return st.secrets[
             "DATABASE_URL"
         ]
 
     # Local .env
-    print("Using Local Environment")
     return os.getenv(
         "DATABASE_URL"
     )

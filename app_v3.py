@@ -1,5 +1,11 @@
 import streamlit as st
 
+st.set_page_config(
+    page_title="Faculty Management System",
+    page_icon="assets/icon.png",  # <--- Path to your image
+    layout="wide"
+)
+
 from services.faculty_service import(
     create_faculty ,  bulk_create_faculty , get_all_faculty ,fetch_all_faculty,update_faculty_details,remove_faculty, reset_password
 )

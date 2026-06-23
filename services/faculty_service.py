@@ -209,17 +209,9 @@ def bulk_create_faculty(
         )
 
         password_map = {
-            "CSE":
-            "CSE2026@",
-
-            "AI&ML":
-            "AIML2026@",
-
-            "Cyber Security":
-            "CYBER2026@",
-
-            "BCA":
-            "BCA2026@"
+            "CSE": "CSE2026@",
+            "AI & ML": "AIML2026@",
+            "CSA": "CSA2026@"
         }
 
         password = (

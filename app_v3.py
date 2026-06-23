@@ -176,7 +176,7 @@ def render_analytics_section():
             with filter_col1:
                 dept_filter = st.selectbox(
                     "Department",
-                    ["All", "CSE", "AI&ML", "BCA", "Cyber Security"],
+                    ["All", "CSE", "AI & ML", "CSA"],
                     key="analytics_dept_filter"
                 )
                 
@@ -506,20 +506,14 @@ else:
                     "Attendance marked successfully"
                 )
 
-                with st.spinner(
-                    "Loading schedule form..."
-                ):
+                # Store in session state so the fragment can safely read it
+                st.session_state["schedule_preload"] = (
+                    fetch_previous_week_template(faculty_id)
+                )
+                
+                st.session_state["current_faculty_id"] = faculty_id
 
-                    preloaded = (
-                        fetch_previous_week_template(
-                            faculty_id
-                        )
-                    )
-
-                    render_schedule_form(
-                        faculty_id,
-                        preloaded
-                    )
+                render_schedule_form()
 
             else:
 
@@ -916,18 +910,17 @@ else:
 
             with filter_col1:
 
-                selected_department = (
-                    st.selectbox(
-                        "Department",
-                        [
-                            "All",
-                            "CSE",
-                            "AI&ML",
-                            "Cyber Security",
-                            "BCA"
-                        ]
+                    selected_department = (
+                        st.selectbox(
+                            "Department",
+                            [
+                                "All",
+                                "CSE",
+                                "AI & ML",
+                                "CSA"
+                            ]
+                        )
                     )
-                )
 
             with filter_col2:
 
@@ -1658,9 +1651,8 @@ else:
                         "Department",
                         [
                             "CSE",
-                            "AI&ML",
-                            "Cyber Security",
-                            "BCA"
+                            "AI & ML",
+                            "CSA"
                         ]
                     )
                 )
@@ -1861,9 +1853,8 @@ else:
 
                         department_options = [
                             "CSE",
-                            "AI&ML",
-                            "Cyber Security",
-                            "BCA"
+                            "AI & ML",
+                            "CSA"
                         ]
 
                         # fallback if DB value mismatches

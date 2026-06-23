@@ -42,35 +42,33 @@ def normalize_department(
 
     department_mapping = {
 
-        "cse":
-        "CSE",
+        # CSE
+        "cse": "CSE",
+        "computer science": "CSE",
+        "b.tech cse": "CSE",
+        "m.tech cse": "CSE",
 
-        "computer science":
-        "CSE",
+        # AI & ML
+        "ai & ml": "AI & ML",
+        "ai&ml": "AI & ML",
+        "ai &ml": "AI & ML",
+        "ai& ml": "AI & ML",
+        "artificial intelligence": "AI & ML",
+        "aiml": "AI & ML",
+        "b.tech aiml": "AI & ML",
+        "b.tech ai&ml": "AI & ML",
+        "b.tech cyber security": "AI & ML",
+        "cyber security": "AI & ML",
+        "cybersecurity": "AI & ML",
+        "cyber": "AI & ML",
+        "b.tech data science": "AI & ML",
+        "data science": "AI & ML",
 
-        "aiml":
-        "AI&ML",
-
-        "ai&ml":
-        "AI&ML",
-
-        "ai & ml":
-        "AI&ML",
-
-        "artificial intelligence":
-        "AI&ML",
-
-        "cyber security":
-        "Cyber Security",
-
-        "cybersecurity":
-        "Cyber Security",
-
-        "cyber":
-        "Cyber Security",
-
-        "bca":
-        "BCA"
+        # CSA
+        "csa": "CSA",
+        "bca": "CSA",
+        "mca": "CSA",
+        "computer science application": "CSA"
     }
 
     return (

@@ -1,5 +1,56 @@
 from database.db import get_connection
+def get_schedule_for_date(faculty_id, target_date):
 
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                slot_number,
+                task_type,
+                department,
+                academic_year,
+                topic_description,
+                remarks
+            FROM daily_activity_logs
+            WHERE faculty_id = %s
+            AND activity_date = %s
+            ORDER BY slot_number
+        """, (faculty_id, target_date))
+
+        return cursor.fetchall()
+
+    finally:
+
+        cursor.close()
+        conn.close()
+
+
+def get_most_recent_activity_date(faculty_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT activity_date 
+            FROM daily_activity_logs 
+            WHERE faculty_id = %s 
+            AND activity_date < CURRENT_DATE
+            ORDER BY activity_date DESC 
+            LIMIT 1
+        """, (faculty_id,))
+
+        result = cursor.fetchone()
+        return result[0] if result else None
+
+    finally:
+
+        cursor.close()
+        conn.close()
 
 def save_daily_activity(
     activity_data
@@ -111,7 +162,7 @@ def check_today_activity_exists(
         cursor.close()
         conn.close()
         
-def get_previous_week_day_schedule(faculty_id):
+def get_previous_week_day_schedule(faculty_id, target_date):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -128,10 +179,9 @@ def get_previous_week_day_schedule(faculty_id):
                 remarks
             FROM daily_activity_logs
             WHERE faculty_id = %s
-            AND activity_date =
-                CURRENT_DATE - INTERVAL '7 days'
+            AND activity_date = %s
             ORDER BY slot_number
-        """, (faculty_id,))
+        """, (faculty_id, target_date))
 
         return cursor.fetchall()
 

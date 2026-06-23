@@ -57,10 +57,11 @@ def _show_save_dialog():
 # ==========================================
 
 @st.fragment
-def render_schedule_form(
-    faculty_id,
-    preloaded_schedule=None
-):
+def render_schedule_form():
+
+    # Safely pull variables from session state (survives fragment reruns)
+    faculty_id = st.session_state.get("current_faculty_id")
+    preloaded_schedule = st.session_state.get("schedule_preload", {})
 
     if preloaded_schedule is None:
         preloaded_schedule = {}
@@ -88,7 +89,11 @@ def render_schedule_form(
         "1:00 – 2:00", "2:00 – 3:00", "3:00 – 4:00", "4:00 – 5:00"
     ]
 
-    departments = ["CSE", "AI&ML", "Cyber Security", "BCA"]
+    departments = [
+        "CSE",
+        "AI & ML",
+        "CSA"
+    ]    
     years = ["1st", "2nd", "3rd", "4th"]
     task_options = ["Teaching", "Office Work", "Research", "Meeting", "Free", "Other"]
 
@@ -96,9 +101,15 @@ def render_schedule_form(
     # Preload banner
     # ---------------------------------
 
-    prev_date = date.today() - timedelta(days=7)
-    prev_day = prev_date.strftime("%A")
-    prev_str = prev_date.strftime("%d %b %Y")
+    # Read the actual date the backend found
+    preload_date = st.session_state.get("preload_date")
+    
+    if preload_date:
+        prev_day = preload_date.strftime("%A")
+        prev_str = preload_date.strftime("%d %b %Y")
+    else:
+        prev_day = "N/A"
+        prev_str = "N/A"
 
     if use_preload:
         st.info(

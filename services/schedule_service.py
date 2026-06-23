@@ -1,9 +1,15 @@
+from queries.semester_queries import (
+    get_active_semester_id
+)
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 from queries.schedule_queries import (
     save_daily_activity,
     check_today_activity_exists,
-    get_previous_week_day_schedule,
-
+    get_previous_week_day_schedule
 )
+
 from queries.semester_queries import (
     get_active_semester_id
 )
@@ -76,7 +82,12 @@ def submit_daily_schedule(
 
 def fetch_previous_week_template(faculty_id):
 
-    rows = get_previous_week_day_schedule(faculty_id)
+    # Calculate 7 days ago strictly in IST to match college hours
+    ist_today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    target_date = ist_today - timedelta(days=7)
+
+    # Pass the exact calculated date to PostgreSQL
+    rows = get_previous_week_day_schedule(faculty_id, target_date)
 
     template = {}
 

@@ -1,6 +1,6 @@
 # UI/UX Improvements & Bug Fixes
 
-## 🔴 High Priority
+##  High Priority
 
 ### 1. Faculty Workload Analytics
 **Issue:**
@@ -43,7 +43,7 @@
 
 ---
 
-## 🟡 Academic Structure Updates
+##  Academic Structure Updates
 
 ### Department Consolidation
 
@@ -52,5 +52,5 @@ Merge the following programs under unified departments:
 | Current Programs | Consolidated Department |
 |------------------|-------------------------|
 | BCA, MCA | **CSA** |
-| B.Tech CSE, M.Tech CSE, DS in CSE | **CSE** |
-| B.Tech AI&ML, B.Tech Cyber Security | **AI & ML** |
+| B.Tech CSE, M.Tech CSE | **CSE** |
+| B.Tech AI&ML, B.Tech Cyber Security , B.Tech Data Science | **AI & ML** |

@@ -506,11 +506,14 @@ else:
                     "Attendance marked successfully"
                 )
 
-                # Store in session state so the fragment can safely read it
-                st.session_state["schedule_preload"] = (
+                # Unpack the template AND the exact date it pulled from
+                preloaded_data, preload_date = (
                     fetch_previous_week_template(faculty_id)
                 )
                 
+                # Store in session state so the fragment can safely read it
+                st.session_state["schedule_preload"] = preloaded_data
+                st.session_state["preload_date"] = preload_date
                 st.session_state["current_faculty_id"] = faculty_id
 
                 render_schedule_form()

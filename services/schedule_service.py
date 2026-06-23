@@ -1,13 +1,11 @@
-from queries.semester_queries import (
-    get_active_semester_id
-)
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from queries.schedule_queries import (
     save_daily_activity,
     check_today_activity_exists,
-    get_previous_week_day_schedule
+    get_schedule_for_date,
+    get_most_recent_activity_date
 )
 
 from queries.semester_queries import (
@@ -61,19 +59,19 @@ def submit_daily_schedule(
         )
 
         formatted_data.append(
-    (
-        item["faculty_id"],
-        semester_id,
-        item["slot_number"],
-        start_time,
-        end_time,
-        item["task_type"],
-        item["department"],
-        item["academic_year"],
-        item["topic_description"],
-        item["remarks"]
-    )
-)
+            (
+                item["faculty_id"],
+                semester_id,
+                item["slot_number"],
+                start_time,
+                end_time,
+                item["task_type"],
+                item["department"],
+                item["academic_year"],
+                item["topic_description"],
+                item["remarks"]
+            )
+        )
 
     return save_daily_activity(
         formatted_data
@@ -82,12 +80,19 @@ def submit_daily_schedule(
 
 def fetch_previous_week_template(faculty_id):
 
-    # Calculate 7 days ago strictly in IST to match college hours
+    # 1. Try strict 7 days ago (IST)
     ist_today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
     target_date = ist_today - timedelta(days=7)
-
-    # Pass the exact calculated date to PostgreSQL
-    rows = get_previous_week_day_schedule(faculty_id, target_date)
+    
+    rows = get_schedule_for_date(faculty_id, target_date)
+    loaded_date = target_date
+    
+    # 2. Fallback: If empty (weekend/holiday), get their absolute last working day
+    if not rows:
+        fallback_date = get_most_recent_activity_date(faculty_id)
+        if fallback_date:
+            rows = get_schedule_for_date(faculty_id, fallback_date)
+            loaded_date = fallback_date
 
     template = {}
 
@@ -110,4 +115,5 @@ def fetch_previous_week_template(faculty_id):
             "remarks": remarks
         }
 
-    return template
+    # MUST return exactly 2 items for app_v3.py to unpack
+    return template, loaded_date

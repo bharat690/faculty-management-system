@@ -292,6 +292,8 @@ if not st.session_state.logged_in:
                 "Password",
                 type="password"
             )
+            
+            st.write("")
 
             if st.button(
                 "Login",

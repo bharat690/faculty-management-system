@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Faculty Management System",
-    page_icon="assets/icon.png",  # <--- Path to your image
+    page_icon="assets/icon.png",  
     layout="wide"
 )
 

@@ -1,15 +1,22 @@
 # Faculty Management System
 
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.58-red)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+![Status](https://img.shields.io/badge/Status-Production-success)
+![Users](https://img.shields.io/badge/Users-150+-brightgreen)
+![License](https://img.shields.io/badge/License-Internal-orange)
+
+
 A web-based Faculty Management System built with **Streamlit** and **PostgreSQL** for **COER University**. The system digitizes daily faculty attendance, activity reporting, availability tracking, and administrative analytics through a centralized dashboard.
 
 > **Status:** Production Deployment
 >
-> **Live Demo:** https://coer-cosc.streamlit.app/
+> **Live Instance:** https://coer-cosc.streamlit.app/
 >
 > **Note:** This application is an **internal tool** intended exclusively for authorized COER University faculty and administration.
 
 ---
-
 ## Overview
 
 The Faculty Management System replaces manual attendance registers and paper-based workload reporting with a centralized digital platform.
@@ -98,7 +105,6 @@ For every faculty member:
 ## Project Structure
 
 ```
-Directory structure:
 └── faculty-management-system/
     ├── README.md
     ├── app.py
@@ -174,7 +180,10 @@ Query Layer
       │
       ▼
 PostgreSQL Database
+
 ```
+The project follows a layered architecture where the Streamlit presentation layer communicates with service modules, which encapsulate business logic and interact with the PostgreSQL database through dedicated query modules.
+
 
 ---
 
@@ -198,7 +207,7 @@ The application uses PostgreSQL and includes tables for:
 Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/faculty-management-system.git
+git clone https://github.com/bharat690/faculty-management-system.git
 ```
 
 Move into the project
@@ -241,13 +250,19 @@ streamlit run app.py
 
 ## Deployment
 
-The production instance is deployed on Streamlit Cloud.
+The application is deployed on **Streamlit Community Cloud** using **PostgreSQL** as the backend database.
 
-**Live URL**
+**Production Instance**
 
 https://coer-cosc.streamlit.app/
 
-Database credentials are supplied through Streamlit Secrets in production.
+### Infrastructure
+
+- Application Hosting: Streamlit Community Cloud (Free Tier)
+- Database: PostgreSQL (Free Tier)
+- Environment Configuration: Streamlit Secrets
+
+The current deployment supports approximately **150 authorized university users** while operating entirely on free-tier cloud services.
 
 ---
 
@@ -309,6 +324,12 @@ After upload, the system generates downloadable credentials for all newly create
 
 ---
 
+## Screenshots
+
+*Screenshots will be added soon.*
+
+---
+
 ## Author
 
 **Bharat**
@@ -318,8 +339,3 @@ B.Tech Computer Science (AI & ML)
 COER University
 
 ---
-
-
-This project was developed as an internal software solution for **COER University**.
-
-Unauthorized commercial redistribution or deployment is not permitted without permission from the author and the university.
